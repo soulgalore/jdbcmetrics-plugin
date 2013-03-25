@@ -4,7 +4,6 @@ Add https://github.com/soulgalore/jdbcmetrics to your Java webapp. Turn on metri
 
 
 ## How to build
-Build plugin 
 <pre>
 mvn install
 </pre>
