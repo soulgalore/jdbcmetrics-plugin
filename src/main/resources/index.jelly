@@ -1,0 +1,6 @@
+<!--
+  This view is used to render the installed plugins page.
+-->
+<div>
+  JDBCMetrics tests the amount of database reads & writes in your Java web application.
+</div>
