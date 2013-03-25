@@ -1,6 +1,6 @@
 # JDBCMetrics plugin for Jenkins [![Build Status](https://travis-ci.org/soulgalore/jdbcmetrics-plugin.png?branch=master)](https://travis-ci.org/soulgalore/jdbcmetrics-plugin)
 
-Add https://github.com/soulgalore/jdbcmetrics to your Java webapp. Turn on metrics by response headers, that will return the number of database reads & database writes a page generates. Install the JDBCMetrics plugin in Jenkins and you can now see the number of database queries generated in for every build in your CI.
+Add https://github.com/soulgalore/jdbcmetrics to your Java webapp. Turn on metrics by response headers, that will return the number of database reads & database writes a page generates. Install the JDBCMetrics plugin in Jenkins and you can now see the number of database queries generated for every build in your CI.
 
 
 ## How to build
@@ -9,7 +9,7 @@ Build plugin
 mvn install
 </pre>
 
-## How to test locally (port 8090)
+## How to test locally (port 8090 because I like it)
 <pre>
 mvn hpi:run -Djetty.port=8090
 </pre>
