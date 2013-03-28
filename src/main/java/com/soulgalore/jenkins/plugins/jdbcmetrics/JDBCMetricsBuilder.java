@@ -317,16 +317,13 @@ public class JDBCMetricsBuilder extends Builder {
 	private boolean setupAuth(PrintStream logger) {
 
 		if (!"".equals(login) && !"".equals(password)) {
-			logger.println("Will use Basic auth: " + login + " " + password);
+		
 			try {
 				URL u = new URL(url);
 				String host = u.getHost()
 						+ (u.getPort() != -1 ? ":" + u.getPort() : ":80");
 				System.setProperty("com.soulgalore.crawler.auth", host + ":"
-						+ login + ": ***SECRET***");
-
-				logger.println("Will use:"
-						+ System.getProperty("com.soulgalore.crawler.auth"));
+						+ login + ":" + password );
 			} catch (MalformedURLException e) {
 				logger.println(e.toString());
 				return false;
