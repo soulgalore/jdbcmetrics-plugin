@@ -5,14 +5,7 @@
   </f:entry>
   
     <f:entry name="level" title="The level of the crawl" field="level">
-    <select name="level" clazz="required">
-    	<option value="0">0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-    </select>
+    <f:textbox default="1" clazz="required positive-number"/>
 </f:entry>
 
  <f:entry title="Max db reads" field="maxReads">
