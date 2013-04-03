@@ -137,11 +137,7 @@ public class JDBCMetricsBuilder extends Builder {
 		return connectionTimeout;
 	}
 
-	@Override
-	public DescriptorImpl getDescriptor() {
-		return (DescriptorImpl) super.getDescriptor();
-	}
-
+	
 	public String getFollowPath() {
 		return followPath;
 	}
@@ -206,6 +202,11 @@ public class JDBCMetricsBuilder extends Builder {
 		return checkHeader;
 	}
 
+	@Override
+	public DescriptorImpl getDescriptor() {
+		return (DescriptorImpl) super.getDescriptor();
+	}
+	
 	@Override
 	public boolean perform(AbstractBuild build, Launcher launcher,
 			BuildListener listener) {
