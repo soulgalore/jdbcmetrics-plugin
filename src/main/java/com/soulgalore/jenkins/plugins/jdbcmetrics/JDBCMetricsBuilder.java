@@ -45,7 +45,6 @@ import com.soulgalore.crawler.core.Crawler;
 import com.soulgalore.crawler.core.CrawlerConfiguration;
 import com.soulgalore.crawler.core.CrawlerResult;
 import com.soulgalore.crawler.core.HTMLPageResponse;
-import com.soulgalore.crawler.core.PageURL;
 import com.soulgalore.crawler.guice.CrawlModule;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableAuthBlock;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableCrawlerInternalsBlock;
@@ -60,23 +59,96 @@ import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableHeaderNameBlock;
  */
 public class JDBCMetricsBuilder extends Builder {
 
+	
+	
+	/**
+	 * The start url of the crawl.
+	 */
 	private final String url;
+	
+	/**
+	 * How deep you want to crawl.
+	 */
 	private final int level;
+	
+	/**
+	 * The request header name, that will trigger JDBCMetrics to send the response headers.
+	 */
 	private final String headerName;
+	
+	/**
+	 * The maximum numbers of database reads to break the build.
+	 */
 	private final int maxReads;
+	
+	/**
+	 * The maximum numbers of database writes to break the build.
+	 */
 	private final int maxWrites;
+	
+	
+	
+	/**
+	 * The login if you are using basic auth.
+	 */
 	private final String login;
+	
+	/**
+	 * The password if you are using basic auth.
+	 */
 	private final String password;
+	
+	/** 
+	 * If the header name is checked or not.
+	 */
 	private final boolean checkHeader;
+	
+	/**
+	 * If auth is checked or not.
+	 */
 	private final boolean checkAuth;
+	
+	/**
+	 * If crawler internals is checked or not.
+	 */
 	private final boolean checkCrawler;
+	
+	/**
+	 * If the crawler path specifics is checked or not.
+	 */
 	private final boolean checkCrawlerPath;
+	
+	/**
+	 * The number of HTTP threads for the crawl client.
+	 */
 	private final String httpThreads;
+	
+	/**
+	 * The number of threads in the pool that will parse the responses.
+	 */
 	private final String threadsPool;
+	
+	/**
+	 * The socket timeout.
+	 */
 	private final String socketTimeout;
+	
+	/**
+	 * The connection timeout.
+	 */
 	private final String connectionTimeout;
+
+	/**
+	 * Follow only this path in the crawl.
+	 */
 	private final String followPath;
+	
+	/**
+	 * Do not include pages in this path in the crawl.
+	 */
 	private final String notFollowPath;
+	
+	
 
 	/**
 	 * If no request header name is configured, this will be sent to the server,
@@ -135,11 +207,6 @@ public class JDBCMetricsBuilder extends Builder {
 
 	public String getConnectionTimeout() {
 		return connectionTimeout;
-	}
-
-	@Override
-	public DescriptorImpl getDescriptor() {
-		return (DescriptorImpl) super.getDescriptor();
 	}
 
 	public String getFollowPath() {
@@ -206,6 +273,11 @@ public class JDBCMetricsBuilder extends Builder {
 		return checkHeader;
 	}
 
+	@Override
+	public DescriptorImpl getDescriptor() {
+		return (DescriptorImpl) super.getDescriptor();
+	}
+	
 	@Override
 	public boolean perform(AbstractBuild build, Launcher launcher,
 			BuildListener listener) {
