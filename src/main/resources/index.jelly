@@ -1,3 +1,0 @@
-<div>
-  This plugin collects the number of database reads & writes fetched from <a href="https://github.com/soulgalore/jdbcmetrics">JDBCMetrics</a>.
-</div>
