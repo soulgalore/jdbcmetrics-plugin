@@ -44,7 +44,6 @@ import com.google.inject.Injector;
 import com.soulgalore.crawler.core.Crawler;
 import com.soulgalore.crawler.core.CrawlerConfiguration;
 import com.soulgalore.crawler.core.CrawlerResult;
-import com.soulgalore.crawler.core.HTMLPageResponse;
 import com.soulgalore.crawler.guice.CrawlModule;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableAuthBlock;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableCrawlerInternalsBlock;
@@ -85,7 +84,6 @@ public class JDBCMetricsBuilder extends Builder {
 	 * The maximum numbers of database writes to break the build.
 	 */
 	private final int maxWrites;
-	
 	
 	
 	/**
@@ -148,8 +146,6 @@ public class JDBCMetricsBuilder extends Builder {
 	 */
 	private final String notFollowPath;
 	
-	
-
 	/**
 	 * If no request header name is configured, this will be sent to the server,
 	 * with the values of <em>true</em> so that JDBCMetrics will send back the
@@ -289,65 +285,11 @@ public class JDBCMetricsBuilder extends Builder {
 
 		setupCrawlerInternals();
 
-		logger.println("Start crawling the URL:s ...");
+		logger.println("Start crawling the URL:s, start with " + url +  " sending request header:" + headerName);
 		final CrawlerResult result = crawl();
 
-		return verifyResult(result, logger);
-		
-	}
-
-	private boolean verifyResult(CrawlerResult result, PrintStream logger) {
-		
-		boolean isBreakingTheLaw = false;
-		
-		int totalWrites = 0;
-		int totalReads = 0;
-		
-		for (HTMLPageResponse response : result.getVerifiedURLResponses()) {
-
-			if (response.getHeaderValue(JDBC_READ_HEADER_NAME) == null
-					|| response.getHeaderValue(JDBC_WRITE_HEADER_NAME) == null) {
-				missingHeaders(logger, response);
-				return false;
-			}
-
-			int reads = Integer.parseInt(response
-					.getHeaderValue(JDBC_READ_HEADER_NAME));
-			int writes = Integer.parseInt(response
-					.getHeaderValue(JDBC_WRITE_HEADER_NAME));
-
-			if (reads > maxReads || writes > maxWrites)
-				isBreakingTheLaw = true;
-
-			logger.println(
-					response.getPageUrl().getUrl() + " reads:" + reads
-							+ " writes:" + writes);
-		}
-
-		logger.println(result.getVerifiedURLResponses().size()
-				+ " urls generated " + totalReads + " database reads & "
-				+ totalWrites + " database writes");
-		
-		if (isBreakingTheLaw)
-			return false;
-		else
-			return true;
-	}
-	
-	private void missingHeaders(PrintStream logger, HTMLPageResponse response) {
-
-		logger.println("Missing JDBCMetrics information from the server. The server should listen on request header ["
-				+ headerName
-				+ "]"
-				+ " . More information about JDBCMetrics here: https://github.com/soulgalore/jdbcmetrics");
-		logger.println("Got the following headers (for page "
-				+ response.getPageUrl().getUri() + " ):");
-
-		logger.println("-------------");
-		for (String key : response.getResponseHeaders().keySet()) {
-			logger.println(key + " : " + response.getHeaderValue(key));
-		}
-		logger.println("-------------");
+		JDBCMetricsJunitReport reporter = new JDBCMetricsJunitReport(maxReads, maxWrites, headerName, logger);
+		return reporter.verifyAndWriteReport(result, build.getWorkspace());
 	}
 
 	private CrawlerResult crawl() {
