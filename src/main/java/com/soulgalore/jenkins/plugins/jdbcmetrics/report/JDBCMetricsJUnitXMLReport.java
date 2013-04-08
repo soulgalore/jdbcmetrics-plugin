@@ -1,4 +1,24 @@
-package com.soulgalore.jenkins.plugins.jdbcmetrics;
+/******************************************************
+ * JDBCMetrics for Jenkins
+ * 
+ *
+ * Copyright (C) 2013 by Peter Hedenskog (http://peterhedenskog.com)
+ *
+ ******************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in 
+ * compliance with the License. You may obtain a copy of the License at
+ * 
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is 
+ * distributed  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   
+ * See the License for the specific language governing permissions and limitations under the License.
+ *
+ *******************************************************
+ */
+package com.soulgalore.jenkins.plugins.jdbcmetrics.report;
 
 import hudson.FilePath;
 
@@ -12,8 +32,13 @@ import org.jdom2.output.XMLOutputter;
 import com.soulgalore.crawler.core.CrawlerResult;
 import com.soulgalore.crawler.core.HTMLPageResponse;
 import com.soulgalore.crawler.util.StatusCode;
+import com.soulgalore.jenkins.plugins.jdbcmetrics.JDBCMetricsBuilder;
 
-public class JDBCMetricsJunitReport {
+/**
+ * Generate a JUnit XML report.
+ *
+ */
+public class JDBCMetricsJUnitXMLReport {
 
 	public static final String FILENAME = "jdbcmetrics-junit.xml";
 	private final int maxReads;
@@ -21,7 +46,7 @@ public class JDBCMetricsJunitReport {
 	private final String headerName;
 	private final PrintStream logger;
 
-	public JDBCMetricsJunitReport(int theMaxReads, int theMaxWrites,
+	public JDBCMetricsJUnitXMLReport(int theMaxReads, int theMaxWrites,
 			String theHeaderName, PrintStream theLogger) {
 		maxReads = theMaxReads;
 		maxWrites = theMaxWrites;
@@ -40,7 +65,7 @@ public class JDBCMetricsJunitReport {
 
 		if (getNumberOfFailures(theResult) > 0)
 			isSuccess = false;
-		
+
 		Document doc = new Document(root);
 		XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
 
@@ -54,8 +79,9 @@ public class JDBCMetricsJunitReport {
 			return isSuccess;
 
 		} catch (Exception e) {
-			logger.println("Couldn't create JunitXML file " + FILENAME + " " + e.toString());
-			return true;
+			logger.println("Couldn't create JunitXML file " + FILENAME + " "
+					+ e.toString());
+			return false;
 		}
 
 	}
@@ -69,7 +95,8 @@ public class JDBCMetricsJunitReport {
 				+ (result.getVerifiedURLResponses().size() + result
 						.getNonWorkingUrls().size()));
 		testSuite.setAttribute("failures", ""
-				+ (getNumberOfFailures(result) + result.getNonWorkingUrls().size()));
+				+ (getNumberOfFailures(result) + result.getNonWorkingUrls()
+						.size()));
 
 		long testSuiteTime = 0;
 		for (HTMLPageResponse resp : result.getVerifiedURLResponses())
@@ -83,7 +110,8 @@ public class JDBCMetricsJunitReport {
 			Element testCase = new Element("testcase");
 			testCase.setAttribute("name", junitFriendlyUrlName(resp
 					.getPageUrl().getUrl()));
-			testCase.setAttribute("status", isMissingHeaders(resp)?"":getStatus(resp));
+			testCase.setAttribute("status", isMissingHeaders(resp) ? ""
+					: getStatus(resp));
 			testCase.setAttribute("time", "" + (resp.getFetchTime() / 1000.0D));
 			if (isMissingHeaders(resp) || isFailure(resp)) {
 				Element failure = new Element("failure");
@@ -129,6 +157,8 @@ public class JDBCMetricsJunitReport {
 			if (isMissingHeaders(resp) || isFailure(resp))
 				failures++;
 		}
+		for (HTMLPageResponse resp : result.getNonWorkingUrls()) 
+			failures++;
 		return failures;
 	}
 
@@ -155,7 +185,7 @@ public class JDBCMetricsJunitReport {
 	}
 
 	private String getStatus(HTMLPageResponse response) {
-	
+
 		int reads = Integer.parseInt(response
 				.getHeaderValue(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME));
 		int writes = Integer.parseInt(response

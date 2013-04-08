@@ -49,6 +49,9 @@ import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableAuthBlock;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableCrawlerInternalsBlock;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableCrawlerPathBlock;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableHeaderNameBlock;
+import com.soulgalore.jenkins.plugins.jdbcmetrics.report.JDBCMetricsHTMLReport;
+import com.soulgalore.jenkins.plugins.jdbcmetrics.report.JDBCMetricsJUnitXMLReport;
+import com.soulgalore.jenkins.plugins.jdbcmetrics.report.JDBCMetricsXMLReport;
 
 /**
  * Plugin hat checks the amount of database reads & writes per page by crawling
@@ -58,79 +61,77 @@ import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableHeaderNameBlock;
  */
 public class JDBCMetricsBuilder extends Builder {
 
-	
-	
 	/**
 	 * The start url of the crawl.
 	 */
 	private final String url;
-	
+
 	/**
 	 * How deep you want to crawl.
 	 */
 	private final int level;
-	
+
 	/**
-	 * The request header name, that will trigger JDBCMetrics to send the response headers.
+	 * The request header name, that will trigger JDBCMetrics to send the
+	 * response headers.
 	 */
 	private final String headerName;
-	
+
 	/**
 	 * The maximum numbers of database reads to break the build.
 	 */
 	private final int maxReads;
-	
+
 	/**
 	 * The maximum numbers of database writes to break the build.
 	 */
 	private final int maxWrites;
-	
-	
+
 	/**
 	 * The login if you are using basic auth.
 	 */
 	private final String login;
-	
+
 	/**
 	 * The password if you are using basic auth.
 	 */
 	private final String password;
-	
-	/** 
+
+	/**
 	 * If the header name is checked or not.
 	 */
 	private final boolean checkHeader;
-	
+
 	/**
 	 * If auth is checked or not.
 	 */
 	private final boolean checkAuth;
-	
+
 	/**
 	 * If crawler internals is checked or not.
 	 */
 	private final boolean checkCrawler;
-	
+
 	/**
 	 * If the crawler path specifics is checked or not.
 	 */
 	private final boolean checkCrawlerPath;
-	
+
 	/**
 	 * The number of HTTP threads for the crawl client.
 	 */
 	private final String httpThreads;
-	
+
 	/**
 	 * The number of threads in the pool that will parse the responses.
 	 */
 	private final String threadsPool;
-	
+
 	/**
 	 * The socket timeout.
 	 */
 	private final String socketTimeout;
-	
+
 	/**
 	 * The connection timeout.
 	 */
@@ -140,12 +141,12 @@ public class JDBCMetricsBuilder extends Builder {
 	 * Follow only this path in the crawl.
 	 */
 	private final String followPath;
-	
+
 	/**
 	 * Do not include pages in this path in the crawl.
 	 */
 	private final String notFollowPath;
-	
+
 	/**
 	 * If no request header name is configured, this will be sent to the server,
 	 * with the values of <em>true</em> so that JDBCMetrics will send back the
@@ -273,7 +274,7 @@ public class JDBCMetricsBuilder extends Builder {
 	public DescriptorImpl getDescriptor() {
 		return (DescriptorImpl) super.getDescriptor();
 	}
-	
+
 	@Override
 	public boolean perform(AbstractBuild build, Launcher launcher,
 			BuildListener listener) {
@@ -285,11 +286,27 @@ public class JDBCMetricsBuilder extends Builder {
 
 		setupCrawlerInternals();
 
-		logger.println("Start crawling the URL:s, start with " + url +  " sending request header:" + headerName);
+		logger.println("Start crawling the URL:s, start with "
+				+ url
+				+ " sending request header:"
+				+ headerName
+				+ (socketTimeout != null ? " socketTimeout:" + socketTimeout
+						: "")
+				+ (connectionTimeout != null ? " connectionTimeout:"
+						+ connectionTimeout : ""));	
+		
+		
 		final CrawlerResult result = crawl();
 
-		JDBCMetricsJunitReport reporter = new JDBCMetricsJunitReport(maxReads, maxWrites, headerName, logger);
-		return reporter.verifyAndWriteReport(result, build.getWorkspace());
+		JDBCMetricsJUnitXMLReport reporter = new JDBCMetricsJUnitXMLReport(maxReads,
+				maxWrites, headerName, logger);
+		JDBCMetricsHTMLReport htmlReporter = new JDBCMetricsHTMLReport(logger);
+		htmlReporter.writeReport(result, build.getWorkspace(), build);
+		JDBCMetricsXMLReport xmlReporter = new JDBCMetricsXMLReport(maxReads,
+				maxWrites, logger);
+		xmlReporter.writeReport(result, build.getWorkspace());
+
+		return  reporter.verifyAndWriteReport(result, build.getWorkspace());
 	}
 
 	private CrawlerResult crawl() {
@@ -304,9 +321,8 @@ public class JDBCMetricsBuilder extends Builder {
 		final Crawler crawler = injector.getInstance(Crawler.class);
 
 		try {
-		return crawler.getUrls(configuration);
-		}
-		finally {
+			return crawler.getUrls(configuration);
+		} finally {
 			crawler.shutdown();
 		}
 	}
@@ -331,13 +347,13 @@ public class JDBCMetricsBuilder extends Builder {
 	private boolean setupAuth(PrintStream logger) {
 
 		if (!"".equals(login) && !"".equals(password)) {
-		
+
 			try {
 				URL u = new URL(url);
 				String host = u.getHost()
 						+ (u.getPort() != -1 ? ":" + u.getPort() : ":80");
 				System.setProperty("com.soulgalore.crawler.auth", host + ":"
-						+ login + ":" + password );
+						+ login + ":" + password);
 			} catch (MalformedURLException e) {
 				logger.println(e.toString());
 				return false;
