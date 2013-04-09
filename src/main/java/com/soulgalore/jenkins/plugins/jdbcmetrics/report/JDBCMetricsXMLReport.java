@@ -94,7 +94,19 @@ public class JDBCMetricsXMLReport {
 				+ getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME, result));
 		pages.addContent(totalReads);
 		pages.addContent(totalWrites);
+		
+		Element readsPerPage = new Element("readsPerPage");
+		Element writesPerPage = new Element("writesPerPage");
+		readsPerPage.addContent(""
+				+ (float) (getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME,
+						result) / result.getVerifiedURLResponses().size()));
+		writesPerPage.addContent(""
+				+ (float) (getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME,
+						result) / result.getVerifiedURLResponses().size()));
 
+		pages.addContent(readsPerPage);
+		pages.addContent(writesPerPage);
+			
 		
 
 		for (HTMLPageResponse resp : result.getVerifiedURLResponses()) {

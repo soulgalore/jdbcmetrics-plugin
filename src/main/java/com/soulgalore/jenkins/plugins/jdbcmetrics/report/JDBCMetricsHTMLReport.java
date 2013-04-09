@@ -44,7 +44,7 @@ public class JDBCMetricsHTMLReport {
 
 	private final PrintStream logger;
 
-	private static final String CSS = "<style type='text/css'>table{font-family:verdana,arial,sans-serif;font-size:11px;color:#333;border-width:1px;border-color:#666;border-collapse:collapse}th{border-width:1px;padding:8px;border-style:solid;border-color:#666;background-color:#dedede}td{border-width:1px;padding:8px;border-style:solid;border-color:#666;background-color:#fff}</style>";
+	private static final String CSS = "<style type='text/css'>body{font-family:verdana,arial,sans-serif;font-size:14px;}table{font-family:verdana,arial,sans-serif;font-size:11px;color:#333;border-width:1px;border-color:#666;border-collapse:collapse}th{border-width:1px;padding:8px;border-style:solid;border-color:#666;background-color:#dedede}td{border-width:1px;padding:8px;border-style:solid;border-color:#666;background-color:#fff}</style>";
 
 	public JDBCMetricsHTMLReport(PrintStream theLogger) {
 		logger = theLogger;
@@ -63,12 +63,20 @@ public class JDBCMetricsHTMLReport {
 		html.append(build.getTime());
 		html.append("</p>");
 		html.append("<p>");
-		html.append("Pages tested:");
+		html.append("Pages: ");
 		html.append(nrOfPages);
-		html.append(" Total reads:");
+		html.append(" Total reads: ");
 		html.append(getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME, theResult));
-		html.append(" Total writes:");
+		html.append(" Total writes: ");
 		html.append(getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME, theResult));
+		html.append("</p>");
+		html.append("<p>");
+		html.append("Reads per page: ");
+		html.append( (float) (getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME,
+						theResult) / theResult.getVerifiedURLResponses().size()));
+		html.append(" Writes per page: ");
+		html.append( (float) (getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME,
+				theResult) / theResult.getVerifiedURLResponses().size()));
 		html.append("</p>");
 		html.append("<table>");
 		html.append("<thead>");
