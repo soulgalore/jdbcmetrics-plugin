@@ -53,6 +53,7 @@ public class JDBCMetricsHTMLReport {
 	public void writeReport(CrawlerResult theResult, FilePath workSpace,
 			AbstractBuild build) {
 
+		int nrOfPages = theResult.getVerifiedURLResponses().size() + theResult.getNonWorkingUrls().size();
 		logger.println("Start writing html report " + FILENAME
 				+ " to workspace");
 		StringBuilder html = new StringBuilder();
@@ -60,6 +61,14 @@ public class JDBCMetricsHTMLReport {
 		html.append(CSS);
 		html.append("</head><body><h1>JDBCMetrics</h1><p>Build time: ");
 		html.append(build.getTime());
+		html.append("</p>");
+		html.append("<p>");
+		html.append("Pages tested:");
+		html.append(nrOfPages);
+		html.append(" Total reads:");
+		html.append(getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME, theResult));
+		html.append(" Total writes:");
+		html.append(getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME, theResult));
 		html.append("</p>");
 		html.append("<table>");
 		html.append("<thead>");
@@ -74,7 +83,10 @@ public class JDBCMetricsHTMLReport {
 		html.append("Writes");
 		html.append("</th>");
 		html.append("<th>");
-		html.append("SC");
+		html.append("Response");
+		html.append("</th>");
+		html.append("<th>");
+		html.append("Time (ms)");
 		html.append("</th>");
 		html.append("</tr>");
 		html.append("</thead>");
@@ -118,7 +130,21 @@ public class JDBCMetricsHTMLReport {
 		html.append("<td>");
 		html.append(StatusCode.toFriendlyName(resp.getResponseCode()));
 		html.append("</td>");
+		html.append("<td>");
+		html.append(resp.getFetchTime());
+		html.append("</td>");
 		html.append("</tr>");
 		return html.toString();
+	}
+	
+	private int getTotal(String headerName, CrawlerResult result) {
+		int total = 0;
+		for (HTMLPageResponse resp : result.getVerifiedURLResponses()) {
+			String value = resp.getHeaderValue(headerName);
+			if (value != null) {
+				total += Integer.parseInt(value);
+			}
+		}
+		return total;
 	}
 }

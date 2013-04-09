@@ -295,7 +295,6 @@ public class JDBCMetricsBuilder extends Builder {
 				+ (connectionTimeout != null ? " connectionTimeout:"
 						+ connectionTimeout : ""));	
 		
-		
 		final CrawlerResult result = crawl();
 
 		JDBCMetricsJUnitXMLReport reporter = new JDBCMetricsJUnitXMLReport(maxReads,
@@ -331,14 +330,14 @@ public class JDBCMetricsBuilder extends Builder {
 		if (!"".equals(httpThreads))
 			System.setProperty(CrawlerConfiguration.MAX_THREADS_PROPERTY_NAME,
 					httpThreads);
-		else if (!"".equals(threadsPool))
+		if (!"".equals(threadsPool))
 			System.setProperty("com.soulgalore.crawler.threadsinworkingpool",
 					threadsPool);
-		else if (!"".equals(socketTimeout))
+		if (!"".equals(socketTimeout))
 			System.setProperty(
 					CrawlerConfiguration.SOCKET_TIMEOUT_PROPERTY_NAME,
 					socketTimeout);
-		else if (!"".equals(connectionTimeout))
+		if (!"".equals(connectionTimeout))
 			System.setProperty(
 					CrawlerConfiguration.CONNECTION_TIMEOUT_PROPERTY_NAME,
 					connectionTimeout);
