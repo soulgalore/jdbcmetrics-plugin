@@ -25,6 +25,7 @@ import hudson.model.AbstractBuild;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Set;
 
 import com.soulgalore.crawler.core.CrawlerResult;
 import com.soulgalore.crawler.core.HTMLPageResponse;
@@ -50,10 +51,10 @@ public class JDBCMetricsHTMLReport {
 		logger = theLogger;
 	}
 
-	public void writeReport(CrawlerResult theResult, FilePath workSpace,
+	public void writeReport(Set<HTMLPageResponse> responses, FilePath workSpace,
 			AbstractBuild build) {
 
-		int nrOfPages = theResult.getVerifiedURLResponses().size() + theResult.getNonWorkingUrls().size();
+		int nrOfPages = responses.size();
 		logger.println("Start writing html report " + FILENAME
 				+ " to workspace");
 		StringBuilder html = new StringBuilder();
@@ -66,17 +67,17 @@ public class JDBCMetricsHTMLReport {
 		html.append("Pages: ");
 		html.append(nrOfPages);
 		html.append(" Total reads: ");
-		html.append(getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME, theResult));
+		html.append(getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME, responses));
 		html.append(" Total writes: ");
-		html.append(getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME, theResult));
+		html.append(getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME, responses));
 		html.append("</p>");
 		html.append("<p>");
 		html.append("Reads per page: ");
 		html.append( (float) (getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME,
-						theResult) / theResult.getVerifiedURLResponses().size()));
+				responses) / responses.size()));
 		html.append(" Writes per page: ");
 		html.append( (float) (getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME,
-				theResult) / theResult.getVerifiedURLResponses().size()));
+				responses) / responses.size()));
 		html.append("</p>");
 		html.append("<table>");
 		html.append("<thead>");
@@ -99,12 +100,10 @@ public class JDBCMetricsHTMLReport {
 		html.append("</tr>");
 		html.append("</thead>");
 		html.append("<tbody>");
-		for (HTMLPageResponse resp : theResult.getVerifiedURLResponses()) {
+		for (HTMLPageResponse resp : responses) {
 			html.append(getResponseHTML(resp));
 		}
-		for (HTMLPageResponse resp : theResult.getNonWorkingUrls()) {
-			html.append(getResponseHTML(resp));
-		}
+
 		html.append("</tbody>");
 		html.append("</table></body></html>");
 
@@ -145,9 +144,9 @@ public class JDBCMetricsHTMLReport {
 		return html.toString();
 	}
 	
-	private int getTotal(String headerName, CrawlerResult result) {
+	private int getTotal(String headerName,Set<HTMLPageResponse> result) {
 		int total = 0;
-		for (HTMLPageResponse resp : result.getVerifiedURLResponses()) {
+		for (HTMLPageResponse resp : result) {
 			String value = resp.getHeaderValue(headerName);
 			if (value != null) {
 				total += Integer.parseInt(value);

@@ -23,6 +23,7 @@ package com.soulgalore.jenkins.plugins.jdbcmetrics.report;
 import hudson.FilePath;
 
 import java.io.PrintStream;
+import java.util.Set;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -54,16 +55,16 @@ public class JDBCMetricsJUnitXMLReport {
 		logger = theLogger;
 	}
 
-	public boolean verifyAndWriteReport(CrawlerResult theResult,
+	public boolean verifyAndWriteReport(Set<HTMLPageResponse> responses,
 			FilePath workSpace) {
 
 		boolean isSuccess = true;
 
 		Element root = new Element("testsuites");
 		root.setAttribute("name", "the jdbcmetrics suites");
-		root.addContent(getTestSuite(theResult));
+		root.addContent(getTestSuite(responses));
 
-		if (getNumberOfFailures(theResult) > 0)
+		if (getNumberOfFailures(responses) > 0)
 			isSuccess = false;
 
 		Document doc = new Document(root);
@@ -86,26 +87,22 @@ public class JDBCMetricsJUnitXMLReport {
 
 	}
 
-	private Element getTestSuite(CrawlerResult result) {
+	private Element getTestSuite(Set<HTMLPageResponse> responses) {
 
 		Element testSuite = new Element("testsuite");
 		testSuite.setAttribute("name", "Tested pages");
 
 		testSuite.setAttribute("tests", ""
-				+ (result.getVerifiedURLResponses().size() + result
-						.getNonWorkingUrls().size()));
+				+ (responses.size()));
 		testSuite.setAttribute("failures", ""
-				+ (getNumberOfFailures(result) + result.getNonWorkingUrls()
-						.size()));
+				+ (getNumberOfFailures(responses)));
 
 		long testSuiteTime = 0;
-		for (HTMLPageResponse resp : result.getVerifiedURLResponses())
-			testSuiteTime += resp.getFetchTime();
-		for (HTMLPageResponse resp : result.getNonWorkingUrls())
+		for (HTMLPageResponse resp : responses)
 			testSuiteTime += resp.getFetchTime();
 		testSuite.setAttribute("time", "" + (testSuiteTime / 1000.0D));
 
-		for (HTMLPageResponse resp : result.getVerifiedURLResponses()) {
+		for (HTMLPageResponse resp : responses) {
 
 			Element testCase = new Element("testcase");
 			testCase.setAttribute("name", junitFriendlyUrlName(resp
@@ -129,7 +126,7 @@ public class JDBCMetricsJUnitXMLReport {
 			}
 			testSuite.addContent(testCase);
 		}
-
+/*
 		for (HTMLPageResponse resp : result.getNonWorkingUrls()) {
 			Element testCase = new Element("testcase");
 			testCase.setAttribute("name", junitFriendlyUrlName(resp
@@ -146,19 +143,18 @@ public class JDBCMetricsJUnitXMLReport {
 			testCase.addContent(failure);
 			testSuite.addContent(testCase);
 		}
-
+*/
 		return testSuite;
 
 	}
 
-	private int getNumberOfFailures(CrawlerResult result) {
+	private int getNumberOfFailures(Set<HTMLPageResponse> responses) {
 		int failures = 0;
-		for (HTMLPageResponse resp : result.getVerifiedURLResponses()) {
+		for (HTMLPageResponse resp : responses) {
 			if (isMissingHeaders(resp) || isFailure(resp))
 				failures++;
 		}
-		for (HTMLPageResponse resp : result.getNonWorkingUrls()) 
-			failures++;
+	
 		return failures;
 	}
 

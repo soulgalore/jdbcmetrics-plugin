@@ -23,6 +23,7 @@ package com.soulgalore.jenkins.plugins.jdbcmetrics.report;
 import hudson.FilePath;
 
 import java.io.PrintStream;
+import java.util.Set;
 
 import org.jdom2.CDATA;
 import org.jdom2.Document;
@@ -52,12 +53,12 @@ public class JDBCMetricsXMLReport {
 		logger = theLogger;
 	}
 
-	public void writeReport(CrawlerResult theResult, FilePath workSpace) {
+	public void writeReport(Set<HTMLPageResponse> responses, FilePath workSpace) {
 
 		Element root = new Element("jdbcmetrics");
 		root.setAttribute("maxReads", "" + maxReads);
 		root.setAttribute("maxWrites", "" + maxWrites);
-		root.addContent(getResult(theResult));
+		root.addContent(getResult(responses));
 		Document doc = new Document(root);
 		XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
 		try {
@@ -72,9 +73,9 @@ public class JDBCMetricsXMLReport {
 
 	}
 
-	private int getTotal(String headerName, CrawlerResult result) {
+	private int getTotal(String headerName, Set<HTMLPageResponse> responses) {
 		int total = 0;
-		for (HTMLPageResponse resp : result.getVerifiedURLResponses()) {
+		for (HTMLPageResponse resp : responses) {
 			String value = resp.getHeaderValue(headerName);
 			if (value != null) {
 				total += Integer.parseInt(value);
@@ -83,15 +84,15 @@ public class JDBCMetricsXMLReport {
 		return total;
 	}
 
-	private Element getResult(CrawlerResult result) {
+	private Element getResult(Set<HTMLPageResponse> responses) {
 
 		Element pages = new Element("pages");
 		Element totalReads = new Element("totalReads");
 		totalReads.addContent(""
-				+ getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME, result));
+				+ getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME, responses));
 		Element totalWrites = new Element("totalWrites");
 		totalWrites.addContent(""
-				+ getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME, result));
+				+ getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME, responses));
 		pages.addContent(totalReads);
 		pages.addContent(totalWrites);
 		
@@ -99,17 +100,17 @@ public class JDBCMetricsXMLReport {
 		Element writesPerPage = new Element("writesPerPage");
 		readsPerPage.addContent(""
 				+ (float) (getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME,
-						result) / result.getVerifiedURLResponses().size()));
+						responses) /responses.size()));
 		writesPerPage.addContent(""
 				+ (float) (getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME,
-						result) / result.getVerifiedURLResponses().size()));
+						responses) / responses.size()));
 
 		pages.addContent(readsPerPage);
 		pages.addContent(writesPerPage);
 			
 		
 
-		for (HTMLPageResponse resp : result.getVerifiedURLResponses()) {
+		for (HTMLPageResponse resp : responses) {
 			Element page = new Element("page");
 			Element url = new Element("url");
 			url.addContent(new CDATA(resp.getPageUrl().getUrl()));
@@ -129,14 +130,6 @@ public class JDBCMetricsXMLReport {
 			page.addContent(url);
 			pages.addContent(page);
 
-		}
-
-		for (HTMLPageResponse resp : result.getNonWorkingUrls()) {
-			Element page = new Element("page");
-			Element url = new Element("url");
-			url.addContent(new CDATA(resp.getPageUrl().getUrl()));
-			page.addContent(url);
-			pages.addContent(page);
 		}
 
 		return pages;
