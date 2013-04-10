@@ -33,6 +33,10 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 
@@ -44,17 +48,22 @@ import com.google.inject.Injector;
 import com.soulgalore.crawler.core.Crawler;
 import com.soulgalore.crawler.core.CrawlerConfiguration;
 import com.soulgalore.crawler.core.CrawlerResult;
+import com.soulgalore.crawler.core.HTMLPageResponse;
+import com.soulgalore.crawler.core.PageURL;
 import com.soulgalore.crawler.guice.CrawlModule;
+import com.soulgalore.crawler.util.HeaderUtil;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableAuthBlock;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableCrawlerInternalsBlock;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableCrawlerPathBlock;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.blocks.EnableHeaderNameBlock;
+import com.soulgalore.jenkins.plugins.jdbcmetrics.fetcher.Fetcher;
+import com.soulgalore.jenkins.plugins.jdbcmetrics.fetcher.FetcherModule;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.report.JDBCMetricsHTMLReport;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.report.JDBCMetricsJUnitXMLReport;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.report.JDBCMetricsXMLReport;
 
 /**
- * Plugin hat checks the amount of database reads & writes per page by crawling
+ * Plugin that checks the amount of database reads & writes per page by crawling
  * your site, sends a specific request header and fetch response headers created
  * by https://github.com/soulgalore/jdbcmetrics. If the number of database reads
  * or writes are more than the configured limit, the plugin will fail.
@@ -65,6 +74,11 @@ public class JDBCMetricsBuilder extends Builder {
 	 * The start url of the crawl.
 	 */
 	private final String url;
+	
+	/**
+	 * A comma separated lists of urls that needs to be tested.
+	 */
+	private final String urls;
 
 	/**
 	 * How deep you want to crawl.
@@ -165,13 +179,14 @@ public class JDBCMetricsBuilder extends Builder {
 	public final static String JDBC_WRITE_HEADER_NAME = "nr-of-writes";
 
 	@DataBoundConstructor
-	public JDBCMetricsBuilder(String url, int level, int maxReads,
+	public JDBCMetricsBuilder(String url, String urls, int level, int maxReads,
 			int maxWrites, EnableAuthBlock checkAuth,
 			EnableHeaderNameBlock checkHeader,
 			EnableCrawlerInternalsBlock checkCrawler,
 			EnableCrawlerPathBlock checkCrawlerPath) {
 
 		this.url = url;
+		this.urls = urls;
 		this.level = level;
 		this.maxReads = maxReads;
 		this.maxWrites = maxWrites;
@@ -253,6 +268,10 @@ public class JDBCMetricsBuilder extends Builder {
 	public String getUrl() {
 		return url;
 	}
+	
+	public String getUrls() {
+		return urls;
+	}
 
 	public boolean isCheckAuth() {
 		return checkAuth;
@@ -296,18 +315,45 @@ public class JDBCMetricsBuilder extends Builder {
 						+ connectionTimeout : ""));	
 		
 		final CrawlerResult result = crawl();
-
+		Set<HTMLPageResponse> responses = new HashSet<HTMLPageResponse>(result.getVerifiedURLResponses().size() + result.getNonWorkingUrls().size());
+		responses.addAll(result.getVerifiedURLResponses());
+		responses.addAll(result.getNonWorkingUrls());
+		
+		// should we also fetch specific urls?
+		if (urls!=null) {			
+			responses.addAll(fetchSpecificUrls());
+		}
+			
 		JDBCMetricsJUnitXMLReport reporter = new JDBCMetricsJUnitXMLReport(maxReads,
 				maxWrites, headerName, logger);
 		JDBCMetricsHTMLReport htmlReporter = new JDBCMetricsHTMLReport(logger);
-		htmlReporter.writeReport(result, build.getWorkspace(), build);
+		htmlReporter.writeReport(responses, build.getWorkspace(), build);
 		JDBCMetricsXMLReport xmlReporter = new JDBCMetricsXMLReport(maxReads,
 				maxWrites, logger);
-		xmlReporter.writeReport(result, build.getWorkspace());
+		xmlReporter.writeReport(responses, build.getWorkspace());
 
-		return  reporter.verifyAndWriteReport(result, build.getWorkspace());
+		return  reporter.verifyAndWriteReport(responses, build.getWorkspace());
 	}
 
+	private Set<HTMLPageResponse> fetchSpecificUrls() {
+		final Injector injector = Guice.createInjector(new FetcherModule());
+		final Fetcher fetcher = injector.getInstance(Fetcher.class);
+
+		String[] a = urls.split(",");
+		Set<PageURL> theUrls = new HashSet<PageURL>(a.length);
+		for (String string : a) {
+			theUrls.add(new PageURL(string));
+		}
+
+		Map<String, String> requestHeaders = new HashMap<String, String>();
+		requestHeaders.put(headerName, "true");
+		try {
+			return fetcher.get(theUrls, requestHeaders);
+		} finally {
+			fetcher.shutdown();
+		}
+
+	}
 	private CrawlerResult crawl() {
 
 		CrawlerConfiguration configuration = CrawlerConfiguration.builder()

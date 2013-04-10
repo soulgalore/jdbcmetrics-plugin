@@ -1,12 +1,18 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  <f:entry title="URL" field="url">
+  <f:entry title="Crawl start url" field="url">
     <f:textbox clazz="required"/>
   </f:entry>
   
-    <f:entry name="level" title="The level of the crawl" field="level">
+   <f:entry name="level" title="The level of the crawl" field="level">
     <f:textbox default="1" clazz="required positive-number"/>
-</f:entry>
+	</f:entry>
+  
+  <f:entry title="Specific urls" field="urls">
+    <f:textarea/>
+  </f:entry>
+  
+   
 
  <f:entry title="Max db reads" field="maxReads">
     <f:textbox default="20" clazz="positive-number required"/>
