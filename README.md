@@ -8,6 +8,15 @@ Add https://github.com/soulgalore/jdbcmetrics to your Java webapp. Turn on metri
 mvn install
 </pre>
 
+## How it works
+
+### Install the plugin in Jenkins
+
+### Configure the plugin
+<img src="https://raw.github.com/soulgalore/jdbcmetrics-plugin/master/resources/jdbcmetric-jenkins.png">
+
+### When you run the plugin, three ouputfiles will be created
+
 ## How to test locally (port 8090 because I like it)
 <pre>
 mvn hpi:run -Djetty.port=8090
