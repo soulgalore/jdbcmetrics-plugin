@@ -3,24 +3,30 @@
 Add https://github.com/soulgalore/jdbcmetrics to your Java webapp. Turn on metrics by response headers, that will return the number of database reads & database writes a page generates. Install the JDBCMetrics plugin in Jenkins and you can now see the number of database queries generated for every build in your CI.
 
 
-## How to build
+
+
+## How it works
+
+### Build the plugin
 <pre>
 mvn install
 </pre>
 
-## How it works
-
 ### Install the plugin in Jenkins
+<img src="https://raw.github.com/soulgalore/jdbcmetrics-plugin/master/resources/jenkins-install.png">
 
 ### Configure the plugin
 <img src="https://raw.github.com/soulgalore/jdbcmetrics-plugin/master/resources/jdbcmetric-jenkins.png">
 
-### When you run the plugin, three ouputfiles will be created
+### When you run the plugin, three files will be created
+<img src="https://raw.github.com/soulgalore/jdbcmetrics-plugin/master/resources/jenkins-files.png">
 
-## How to test locally (port 8090 because I like it)
-<pre>
-mvn hpi:run -Djetty.port=8090
-</pre>
+### Setup post actions to take care of the files
+<ul>
+<li>Publish JUnit test result report <i>jdbcmetrics-junit.xml</i></li>
+<li><a href="https://wiki.jenkins-ci.org/display/JENKINS/HTML+Publisher+Plugin" target="_blank">Publish HTML reports</a> <i>jdbcmetrics.html</i></li>
+<li><a href="https://wiki.jenkins-ci.org/display/JENKINS/Plot+Plugin" target="_blank">Plot build plugin</a> <i>jdbcmetrics.xml</i></li>
+</ul>
 
 
 ## License
