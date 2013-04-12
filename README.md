@@ -23,9 +23,9 @@ mvn install
 
 ### Setup post actions to take care of the files
 <ul>
-<li>Publish JUnit test result report <i>jdbcmetrics-junit.xml</i></li>
-<li><a href="https://wiki.jenkins-ci.org/display/JENKINS/HTML+Publisher+Plugin" target="_blank">Publish HTML reports</a> <i>jdbcmetrics.html</i></li>
-<li><a href="https://wiki.jenkins-ci.org/display/JENKINS/Plot+Plugin" target="_blank">Plot build plugin</a> <i>jdbcmetrics.xml</i></li>
+<li>The Jenkins built in <strong>Publish JUnit test result report</strong> will use the  <i>jdbcmetrics-junit.xml</i> file to publish your test report.</li>
+<li><a href="https://wiki.jenkins-ci.org/display/JENKINS/HTML+Publisher+Plugin" target="_blank">Publish HTML reports</a> will publish the result as a nice HTML report, using <i>jdbcmetrics.html</i>.</li>
+<li><a href="https://wiki.jenkins-ci.org/display/JENKINS/Plot+Plugin" target="_blank">Plot build plugin</a> will help you build graphs between builds using the <i>jdbcmetrics.xml</i> file.</li>
 </ul>
 
 
