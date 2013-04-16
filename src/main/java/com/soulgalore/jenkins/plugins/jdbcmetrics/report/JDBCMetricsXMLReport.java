@@ -31,7 +31,6 @@ import org.jdom2.Element;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
-import com.soulgalore.crawler.core.CrawlerResult;
 import com.soulgalore.crawler.core.HTMLPageResponse;
 import com.soulgalore.jenkins.plugins.jdbcmetrics.JDBCMetricsBuilder;
 
@@ -114,20 +113,20 @@ public class JDBCMetricsXMLReport {
 			Element page = new Element("page");
 			Element url = new Element("url");
 			url.addContent(new CDATA(resp.getPageUrl().getUrl()));
+			page.addContent(url);
 			if (resp.getHeaderValue(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME) != null) {
 				Element reads = new Element("reads");
 				reads.addContent(resp
 						.getHeaderValue(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME));
-				url.addContent(reads);
+				page.addContent(reads);
 			}
 			if (resp.getHeaderValue(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME) != null) {
 				Element writes = new Element("writes");
 				writes.addContent(resp
 						.getHeaderValue(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME));
-				url.addContent(writes);
+				page.addContent(writes);
 
 			}
-			page.addContent(url);
 			pages.addContent(page);
 
 		}
