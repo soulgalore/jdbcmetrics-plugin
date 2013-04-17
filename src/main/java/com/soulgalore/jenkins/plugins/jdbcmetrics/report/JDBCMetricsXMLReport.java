@@ -84,8 +84,7 @@ public class JDBCMetricsXMLReport {
 		return total;
 	}
 	
-	private int getMedian(String headerName, Set<HTMLPageResponse> responses) {
-		
+	private int[] getSortedValues(String headerName, Set<HTMLPageResponse> responses) {
 		int[] values = new int[responses.size()];
 		int i =0;
 		for (HTMLPageResponse resp : responses) {
@@ -96,8 +95,16 @@ public class JDBCMetricsXMLReport {
 			else values[i] =0;
 			i++;
 		}
+		
 		Arrays.sort(values);
 		
+		return values;
+	}
+	
+	private int getMedian(String headerName, Set<HTMLPageResponse> responses) {
+		
+		int[] values = getSortedValues(headerName, responses);
+	
 		int middle = values.length/2;
 	    if (values.length%2 == 1) {
 	        return values[middle];
