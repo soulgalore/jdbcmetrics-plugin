@@ -23,6 +23,7 @@ package com.soulgalore.jenkins.plugins.jdbcmetrics.report;
 import hudson.FilePath;
 
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Set;
 
 import org.jdom2.CDATA;
@@ -82,6 +83,29 @@ public class JDBCMetricsXMLReport {
 		}
 		return total;
 	}
+	
+	private int getMedian(String headerName, Set<HTMLPageResponse> responses) {
+		
+		int[] values = new int[responses.size()];
+		int i =0;
+		for (HTMLPageResponse resp : responses) {
+			String value = resp.getHeaderValue(headerName);
+			
+			if (value != null) 
+				values[i] = Integer.parseInt(value);
+			else values[i] =0;
+			i++;
+		}
+		Arrays.sort(values);
+		
+		int middle = values.length/2;
+	    if (values.length%2 == 1) {
+	        return values[middle];
+	    } else {
+	        return (values[middle-1] + values[middle]) / 2;
+	    }
+		
+	}
 
 	private Element getResult(Set<HTMLPageResponse> responses) {
 
@@ -95,19 +119,30 @@ public class JDBCMetricsXMLReport {
 		pages.addContent(totalReads);
 		pages.addContent(totalWrites);
 		
-		Element readsPerPage = new Element("readsPerPage");
-		Element writesPerPage = new Element("writesPerPage");
-		readsPerPage.addContent(""
+		Element meanReadsPerPage = new Element("meanReadsPerPage");
+		Element meanWritesPerPage = new Element("meanWritesPerPage");
+		meanReadsPerPage.addContent(""
 				+ (float) (getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME,
 						responses) /responses.size()));
-		writesPerPage.addContent(""
+		meanWritesPerPage.addContent(""
 				+ (float) (getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME,
 						responses) / responses.size()));
 
-		pages.addContent(readsPerPage);
-		pages.addContent(writesPerPage);
+		pages.addContent(meanReadsPerPage);
+		pages.addContent(meanWritesPerPage);
 			
+		Element medianReadsPerPage = new Element("medianReadsPerPage");
+		Element medianWritesPerPage = new Element("medianWritesPerPage");
 		
+		medianReadsPerPage.addContent(""
+				+ getMedian(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME,
+						responses));
+		medianWritesPerPage.addContent(""
+				+ getMedian(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME,
+						responses));
+		
+		pages.addContent(medianReadsPerPage);
+		pages.addContent(medianWritesPerPage);
 
 		for (HTMLPageResponse resp : responses) {
 			Element page = new Element("page");
