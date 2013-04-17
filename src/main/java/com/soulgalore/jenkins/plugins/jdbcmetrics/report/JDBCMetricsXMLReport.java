@@ -26,6 +26,7 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Set;
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.jdom2.CDATA;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -37,7 +38,7 @@ import com.soulgalore.jenkins.plugins.jdbcmetrics.JDBCMetricsBuilder;
 
 /**
  * Generate a generic XML report.
- *
+ * 
  */
 public class JDBCMetricsXMLReport {
 
@@ -73,83 +74,74 @@ public class JDBCMetricsXMLReport {
 
 	}
 
-	private int getTotal(String headerName, Set<HTMLPageResponse> responses) {
-		int total = 0;
+	private DescriptiveStatistics getStats(String headerName,
+			Set<HTMLPageResponse> responses) {
+
+		DescriptiveStatistics stats = new DescriptiveStatistics();
+
 		for (HTMLPageResponse resp : responses) {
 			String value = resp.getHeaderValue(headerName);
-			if (value != null) {
-				total += Integer.parseInt(value);
-			}
+			if (value != null)
+				stats.addValue(Integer.parseInt(value));
 		}
-		return total;
-	}
-	
-	private int[] getSortedValues(String headerName, Set<HTMLPageResponse> responses) {
-		int[] values = new int[responses.size()];
-		int i =0;
-		for (HTMLPageResponse resp : responses) {
-			String value = resp.getHeaderValue(headerName);
-			
-			if (value != null) 
-				values[i] = Integer.parseInt(value);
-			else values[i] =0;
-			i++;
-		}
-		
-		Arrays.sort(values);
-		
-		return values;
-	}
-	
-	private int getMedian(String headerName, Set<HTMLPageResponse> responses) {
-		
-		int[] values = getSortedValues(headerName, responses);
-	
-		int middle = values.length/2;
-	    if (values.length%2 == 1) {
-	        return values[middle];
-	    } else {
-	        return (values[middle-1] + values[middle]) / 2;
-	    }
-		
+		return stats;
 	}
 
 	private Element getResult(Set<HTMLPageResponse> responses) {
 
 		Element pages = new Element("pages");
 		Element totalReads = new Element("totalReads");
-		totalReads.addContent(""
-				+ getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME, responses));
 		Element totalWrites = new Element("totalWrites");
-		totalWrites.addContent(""
-				+ getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME, responses));
-		pages.addContent(totalReads);
-		pages.addContent(totalWrites);
-		
 		Element meanReadsPerPage = new Element("meanReadsPerPage");
 		Element meanWritesPerPage = new Element("meanWritesPerPage");
-		meanReadsPerPage.addContent(""
-				+ (float) (getTotal(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME,
-						responses) /responses.size()));
-		meanWritesPerPage.addContent(""
-				+ (float) (getTotal(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME,
-						responses) / responses.size()));
+		Element medianReadsPerPage = new Element("medianReadsPerPage");
+		Element medianWritesPerPage = new Element("medianWritesPerPage");
+		Element maxReadsPerPage = new Element("maxReadsPerPage");
+		Element maxWritesPerPage = new Element("maxWritesPerPage");
+		Element minReadsPerPage = new Element("minReadsPerPage");
+		Element minWritesPerPage = new Element("minWritesPerPage");
+		Element percentilReadsPerPage = new Element("percentil90ReadsPerPage");
+		Element percentilWritesPerPage = new Element("percentil90WritesPerPage");
+
+		DescriptiveStatistics readStats = getStats(
+				JDBCMetricsBuilder.JDBC_READ_HEADER_NAME, responses);
+		DescriptiveStatistics writeStats = getStats(
+				JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME, responses);
+
+		totalReads.addContent("" + readStats.getSum());
+		totalWrites.addContent("" + writeStats.getSum());
+		pages.addContent(totalReads);
+		pages.addContent(totalWrites);
+
+		meanReadsPerPage.addContent("" + readStats.getMean());
+		meanWritesPerPage.addContent("" + writeStats.getMean());
 
 		pages.addContent(meanReadsPerPage);
 		pages.addContent(meanWritesPerPage);
-			
-		Element medianReadsPerPage = new Element("medianReadsPerPage");
-		Element medianWritesPerPage = new Element("medianWritesPerPage");
-		
-		medianReadsPerPage.addContent(""
-				+ getMedian(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME,
-						responses));
-		medianWritesPerPage.addContent(""
-				+ getMedian(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME,
-						responses));
-		
+
+		medianReadsPerPage.addContent("" + readStats.getPercentile(50));
+		medianWritesPerPage.addContent("" + writeStats.getPercentile(50));
+
 		pages.addContent(medianReadsPerPage);
 		pages.addContent(medianWritesPerPage);
+
+		maxReadsPerPage.addContent("" + readStats.getMax());
+		maxWritesPerPage.addContent("" + writeStats.getMax());
+
+		pages.addContent(maxReadsPerPage);
+		pages.addContent(maxWritesPerPage);
+
+		minReadsPerPage.addContent("" + readStats.getMin());
+		minWritesPerPage.addContent("" + writeStats.getMin());
+
+		pages.addContent(minReadsPerPage);
+		pages.addContent(minWritesPerPage);
+
+		percentilReadsPerPage.addContent("" + readStats.getPercentile(90));
+		percentilWritesPerPage.addContent("" + writeStats.getPercentile(90));
+
+		pages.addContent(percentilReadsPerPage);
+		pages.addContent(percentilWritesPerPage);
 
 		for (HTMLPageResponse resp : responses) {
 			Element page = new Element("page");
