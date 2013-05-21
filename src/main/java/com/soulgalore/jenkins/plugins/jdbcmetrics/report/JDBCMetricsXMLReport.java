@@ -102,11 +102,29 @@ public class JDBCMetricsXMLReport {
 		Element minWritesPerPage = new Element("minWritesPerPage");
 		Element percentilReadsPerPage = new Element("percentil90ReadsPerPage");
 		Element percentilWritesPerPage = new Element("percentil90WritesPerPage");
-
+		
+		Element meanReadTimePerPage = new Element("meanReadTimePerPage");
+		Element meanWriteTimePerPage = new Element("meanWriteTimePerPage");
+		Element medianReadTimePerPage = new Element("medianReadTimePerPage");
+		Element medianWriteTimePerPage = new Element("medianWriteTimePerPage");
+		Element maxReadTimePerPage = new Element("maxReadTimePerPage");
+		Element maxWriteTimePerPage = new Element("maxWriteTimePerPage");
+		Element minReadTimePerPage = new Element("minReadTimePerPage");
+		Element minWriteTimePerPage = new Element("minWriteTimePerPage");
+		Element percentilReadTimePerPage = new Element("percentil90ReadTimePerPage");
+		Element percentilWriteTimePerPage = new Element("percentil90WriteTimePerPage");
+		
+		
+		
 		DescriptiveStatistics readStats = getStats(
 				JDBCMetricsBuilder.JDBC_READ_HEADER_NAME, responses);
 		DescriptiveStatistics writeStats = getStats(
 				JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME, responses);
+		DescriptiveStatistics readTimeStats = getStats(
+				JDBCMetricsBuilder.JDBC_READ_TIME_HEADER_NAME, responses);
+		DescriptiveStatistics writeTimeStats = getStats(
+				JDBCMetricsBuilder.JDBC_WRITE_TIME_HEADER_NAME, responses);
+
 
 		totalReads.addContent("" + readStats.getSum());
 		totalWrites.addContent("" + writeStats.getSum());
@@ -115,34 +133,60 @@ public class JDBCMetricsXMLReport {
 
 		meanReadsPerPage.addContent("" + readStats.getMean());
 		meanWritesPerPage.addContent("" + writeStats.getMean());
+		meanReadTimePerPage.addContent("" + readTimeStats.getMean());
+		meanWriteTimePerPage.addContent("" + writeTimeStats.getMean());
 
+		
 		pages.addContent(meanReadsPerPage);
 		pages.addContent(meanWritesPerPage);
+		pages.addContent(meanWriteTimePerPage);
+		pages.addContent(meanReadTimePerPage);
 
 		medianReadsPerPage.addContent("" + readStats.getPercentile(50));
 		medianWritesPerPage.addContent("" + writeStats.getPercentile(50));
+		medianReadTimePerPage.addContent("" + readTimeStats.getPercentile(50));
+		medianWriteTimePerPage.addContent("" + writeTimeStats.getPercentile(50));
 
 		pages.addContent(medianReadsPerPage);
 		pages.addContent(medianWritesPerPage);
+		pages.addContent(medianReadTimePerPage);
+		pages.addContent(medianWriteTimePerPage);
 
+		
 		maxReadsPerPage.addContent("" + readStats.getMax());
 		maxWritesPerPage.addContent("" + writeStats.getMax());
+		maxReadTimePerPage.addContent("" + readTimeStats.getMax());
+		maxWriteTimePerPage.addContent("" + writeTimeStats.getMax());
 
+		
 		pages.addContent(maxReadsPerPage);
 		pages.addContent(maxWritesPerPage);
+		pages.addContent(maxReadTimePerPage);
+		pages.addContent(maxWriteTimePerPage);
 
+		
 		minReadsPerPage.addContent("" + readStats.getMin());
 		minWritesPerPage.addContent("" + writeStats.getMin());
-
+		minReadTimePerPage.addContent("" + readTimeStats.getMin());
+		minWriteTimePerPage.addContent("" + writeTimeStats.getMin());
+		
 		pages.addContent(minReadsPerPage);
 		pages.addContent(minWritesPerPage);
+		pages.addContent(minReadTimePerPage);
+		pages.addContent(minWriteTimePerPage);
 
+		
 		percentilReadsPerPage.addContent("" + readStats.getPercentile(90));
 		percentilWritesPerPage.addContent("" + writeStats.getPercentile(90));
+		percentilReadTimePerPage.addContent("" + readTimeStats.getPercentile(90));
+		percentilWriteTimePerPage.addContent("" + writeTimeStats.getPercentile(90));
 
 		pages.addContent(percentilReadsPerPage);
 		pages.addContent(percentilWritesPerPage);
+		pages.addContent(percentilReadTimePerPage);
+		pages.addContent(percentilWriteTimePerPage);
 
+		
 		for (HTMLPageResponse resp : responses) {
 			Element page = new Element("page");
 			Element url = new Element("url");
@@ -154,13 +198,27 @@ public class JDBCMetricsXMLReport {
 						.getHeaderValue(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME));
 				page.addContent(reads);
 			}
-			if (resp.getHeaderValue(JDBCMetricsBuilder.JDBC_READ_HEADER_NAME) != null) {
+			if (resp.getHeaderValue(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME) != null) {
 				Element writes = new Element("writes");
 				writes.addContent(resp
 						.getHeaderValue(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME));
 				page.addContent(writes);
 
 			}
+			if (resp.getHeaderValue(JDBCMetricsBuilder.JDBC_READ_TIME_HEADER_NAME) != null) {
+				Element readTime = new Element("read-time");
+				readTime.addContent(resp
+						.getHeaderValue(JDBCMetricsBuilder.JDBC_READ_TIME_HEADER_NAME));
+				page.addContent(readTime);
+			}
+			if (resp.getHeaderValue(JDBCMetricsBuilder.JDBC_WRITE_TIME_HEADER_NAME) != null) {
+				Element writeTime = new Element("write-time");
+				writeTime.addContent(resp
+						.getHeaderValue(JDBCMetricsBuilder.JDBC_WRITE_TIME_HEADER_NAME));
+				page.addContent(writeTime);
+
+			}
+
 			pages.addContent(page);
 
 		}

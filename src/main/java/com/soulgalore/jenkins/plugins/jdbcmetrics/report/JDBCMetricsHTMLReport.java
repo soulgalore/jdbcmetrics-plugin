@@ -92,10 +92,16 @@ public class JDBCMetricsHTMLReport {
 		html.append("Writes");
 		html.append("</th>");
 		html.append("<th>");
-		html.append("Response");
+		html.append("Read time (ms)");
+		html.append("</th>");
+		html.append("<th>");
+		html.append("Write time (ms)");
 		html.append("</th>");
 		html.append("<th>");
 		html.append("Time (ms)");
+		html.append("</th>");
+		html.append("<th>");
+		html.append("Response");
 		html.append("</th>");
 		html.append("</tr>");
 		html.append("</thead>");
@@ -135,10 +141,19 @@ public class JDBCMetricsHTMLReport {
 				.getHeaderValue(JDBCMetricsBuilder.JDBC_WRITE_HEADER_NAME));
 		html.append("</td>");
 		html.append("<td>");
-		html.append(StatusCode.toFriendlyName(resp.getResponseCode()));
+		html.append(resp
+				.getHeaderValue(JDBCMetricsBuilder.JDBC_READ_TIME_HEADER_NAME));
 		html.append("</td>");
 		html.append("<td>");
+		html.append(resp
+				.getHeaderValue(JDBCMetricsBuilder.JDBC_WRITE_TIME_HEADER_NAME));
+		html.append("</td>");
+		
+		html.append("<td>");
 		html.append(resp.getFetchTime());
+		html.append("</td>");
+		html.append("<td>");
+		html.append(StatusCode.toFriendlyName(resp.getResponseCode()));
 		html.append("</td>");
 		html.append("</tr>");
 		return html.toString();

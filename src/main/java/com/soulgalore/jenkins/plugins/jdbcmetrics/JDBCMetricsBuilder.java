@@ -177,6 +177,16 @@ public class JDBCMetricsBuilder extends Builder {
 	 * The header name that holds the number of database writes for a page.
 	 */
 	public final static String JDBC_WRITE_HEADER_NAME = "nr-of-writes";
+	
+	/**
+	 * The header name that holds the time spent in the database reads of a page.
+	 */
+	public final static String JDBC_READ_TIME_HEADER_NAME = "read-time";
+
+	/**
+	 * The header name that holds the time spent in the database writes of a page.
+	 */
+	public final static String JDBC_WRITE_TIME_HEADER_NAME = "write-time";
 
 	@DataBoundConstructor
 	public JDBCMetricsBuilder(String url, String urls, int level, int maxReads,
